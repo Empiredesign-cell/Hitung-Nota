@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Cetak Nota - PrintPro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Mengaktifkan fitur dark mode berdasarkan class
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb', 
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        accent: {
+                            400: '#facc15', 
+                            500: '#eab308',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background-color: #f8fafc; 
+            background-image: radial-gradient(circle at 100% 0%, #eff6ff 0%, transparent 40%), radial-gradient(circle at 0% 100%, #eff6ff 0%, transparent 40%);
+            background-attachment: fixed;
+            transition: background-color 0.3s ease;
+        }
+        
+        /* Dark Mode Background Adjustments */
+        .dark body {
+            background-color: #0f172a; /* slate-900 */
+            background-image: radial-gradient(circle at 100% 0%, rgba(30, 58, 138, 0.2) 0%, transparent 40%), radial-gradient(circle at 0% 100%, rgba(30, 58, 138, 0.2) 0%, transparent 40%);
+        }
+
+        /* Hide number input arrows */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
+
+        /* Animations */
+        .reveal { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .reveal-hidden { opacity: 0; max-height: 0; overflow: hidden; margin-top: 0; transform: translateY(-10px); }
+        .reveal-visible { opacity: 1; max-height: 200px; margin-top: 1rem; transform: translateY(0); }
+        
+        /* Custom Checkbox Animation */
+        .checkbox-custom:checked + div svg { opacity: 1; transform: scale(1); }
+        .checkbox-custom + div svg { opacity: 0; transform: scale(0.5); transition: all 0.2s; }
+
+        /* Card Hover Effects */
+        .class-card { transition: all 0.3s ease; }
+        .class-card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.1), 0 8px 10px -6px rgba(37, 99, 235, 0.1); }
+        
+        /* Arrow icon rotation for cards */
+        input[type="radio"]:checked + div .arrow-icon { background-color: #2563eb; color: white; border-color: #2563eb; transform: rotate(45deg); }
+    </style>
+</head>
+<body class="text-slate-800 dark:text-slate-200 antialiased min-h-screen flex flex-col selection:bg-brand-100 dark:selection:bg-brand-900 selection:text-brand-900 dark:selection:text-brand-100 transition-colors duration-300">
+
+    <!-- Theme Toggle Button (Floating) -->
+    <div class="fixed top-6 right-6 z-50">
+        <button id="themeToggle" class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 transition-all hover:scale-110 active:scale-95">
+            <i data-lucide="moon" class="w-6 h-6 block dark:hidden"></i>
+            <i data-lucide="sun" class="w-6 h-6 hidden dark:block text-accent-400"></i>
+        </button>
+    </div>
+
+    <!-- Hero Section -->
+    <header class="text-center pt-20 pb-16 px-4 relative overflow-hidden">
+        <!-- Decorative Stars -->
+        <i data-lucide="sparkles" class="absolute top-10 left-[20%] text-accent-400 w-10 h-10 fill-accent-400 opacity-80"></i>
+        <i data-lucide="sparkle" class="absolute top-24 right-[22%] text-accent-400 w-8 h-8 fill-accent-400 opacity-80"></i>
+
+        <h1 class="text-5xl md:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight max-w-4xl mx-auto flex flex-col items-center gap-3 transition-colors">
+            <span>Hitung Estimasi</span>
+            <div class="flex items-center gap-4 flex-wrap justify-center">
+                <span>Harga</span>
+                <div class="bg-accent-400 rounded-full px-6 py-2 inline-flex items-center justify-center shadow-lg shadow-accent-400/30">
+                    <i data-lucide="arrow-right" class="text-slate-900 w-8 h-8"></i>
+                </div>
+                <span>Cetak Nota</span>
+            </div>
+        </h1>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow w-full px-4 sm:px-6 md:px-8 pb-20">
+        <div class="max-w-[1400px] mx-auto bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-[2.5rem] shadow-sm p-6 sm:p-10 lg:p-14 relative overflow-hidden transition-colors duration-300">
+            
+            <!-- Header of the Box -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 pb-8 border-b border-slate-100 dark:border-slate-700 gap-4 transition-colors">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">Kalkulator</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400 font-medium max-w-sm md:text-right">
+                    Tentukan spesifikasi nota seperti jenis kertas, ukuran, dan tambahan finishing untuk melihat estimasi harga.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
+                
+                <!-- Left Column: Form Setup -->
+                <div class="lg:col-span-7 xl:col-span-8">
+                    <form id="calcForm" class="space-y-10">
+                        
+                        <!-- Section 1: Bahan -->
+                        <div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Card NCR -->
+                                <label class="cursor-pointer group relative">
+                                    <input type="radio" name="bahan" value="ncr" class="peer sr-only" checked onchange="updateUI()">
+                                    <div class="class-card h-full rounded-3xl border-2 border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 peer-checked:border-brand-600 dark:peer-checked:border-brand-500 peer-checked:bg-brand-50/30 dark:peer-checked:bg-brand-900/20 transition-all flex flex-col justify-between gap-6">
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="text-2xl font-bold text-slate-900 dark:text-white peer-checked:text-brand-700 dark:peer-checked:text-brand-400 transition-colors">NOTA NCR</h3>
+                                            <div class="arrow-icon w-8 h-8 rounded-full border border-slate-200 dark:border-slate-600 flex items-center justify-center text-slate-400 transition-all duration-300 bg-white dark:bg-slate-800">
+                                                <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                                            </div>
+                                        </div>
+                                        <div class="w-full h-32 bg-slate-100 dark:bg-slate-700/50 rounded-2xl flex items-center justify-center peer-checked:bg-brand-100 dark:peer-checked:bg-brand-900/50 transition-colors border border-slate-100 dark:border-slate-600/50 overflow-hidden relative">
+                                            <i data-lucide="copy" class="w-12 h-12 text-brand-500 opacity-50 z-10"></i>
+                                            <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-brand-200 dark:bg-brand-800 rounded-full blur-xl opacity-60"></div>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <!-- Card HVS -->
+                                <label class="cursor-pointer group relative">
+                                    <input type="radio" name="bahan" value="hvs" class="peer sr-only" onchange="updateUI()">
+                                    <div class="class-card h-full rounded-3xl border-2 border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6 peer-checked:border-brand-600 dark:peer-checked:border-brand-500 peer-checked:bg-brand-50/30 dark:peer-checked:bg-brand-900/20 transition-all flex flex-col justify-between gap-6">
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="text-2xl font-bold text-slate-900 dark:text-white peer-checked:text-brand-700 dark:peer-checked:text-brand-400 transition-colors">NOTA HVS</h3>
+                                            <div class="arrow-icon w-8 h-8 rounded-full border border-slate-200 dark:border-slate-600 flex items-center justify-center text-slate-400 transition-all duration-300 bg-white dark:bg-slate-800">
+                                                <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                                            </div>
+                                        </div>
+                                        <div class="w-full h-32 bg-slate-100 dark:bg-slate-700/50 rounded-2xl flex items-center justify-center peer-checked:bg-brand-100 dark:peer-checked:bg-brand-900/50 transition-colors border border-slate-100 dark:border-slate-600/50 overflow-hidden relative">
+                                            <i data-lucide="file" class="w-12 h-12 text-brand-500 opacity-50 z-10"></i>
+                                            <div class="absolute -left-4 -bottom-4 w-20 h-20 bg-brand-200 dark:bg-brand-800 rounded-full blur-xl opacity-60"></div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Spesifikasi -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-50/50 dark:bg-slate-800/30 p-6 rounded-3xl border border-slate-100 dark:border-slate-700/50 transition-colors">
+                            <!-- Jumlah Warna -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 tracking-wider mb-4 flex items-center gap-2">
+                                    <i data-lucide="palette" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+                                    Warna Cetak
+                                </label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="warna" value="1" class="peer sr-only" checked onchange="calculate()">
+                                        <div class="rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 py-3 text-center text-sm font-bold text-slate-600 dark:text-slate-300 hover:border-brand-300 dark:hover:border-brand-500 peer-checked:border-brand-600 dark:peer-checked:border-brand-500 peer-checked:bg-brand-600 dark:peer-checked:bg-brand-600 peer-checked:text-white dark:peer-checked:text-white transition-all shadow-sm">
+                                            1 Warna
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="warna" value="2" class="peer sr-only" onchange="calculate()">
+                                        <div class="rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 py-3 text-center text-sm font-bold text-slate-600 dark:text-slate-300 hover:border-brand-300 dark:hover:border-brand-500 peer-checked:border-brand-600 dark:peer-checked:border-brand-500 peer-checked:bg-brand-600 dark:peer-checked:bg-brand-600 peer-checked:text-white dark:peer-checked:text-white transition-all shadow-sm">
+                                            2 Warna
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="warna" value="3" class="peer sr-only" onchange="calculate()">
+                                        <div class="rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 py-3 text-center text-sm font-bold text-slate-600 dark:text-slate-300 hover:border-brand-300 dark:hover:border-brand-500 peer-checked:border-brand-600 dark:peer-checked:border-brand-500 peer-checked:bg-brand-600 dark:peer-checked:bg-brand-600 peer-checked:text-white dark:peer-checked:text-white transition-all shadow-sm">
+                                            3 Warna
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Rangkap (Hanya NCR) -->
+                            <div id="rangkapContainer" class="reveal reveal-visible">
+                                <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 tracking-wider mb-4 flex items-center gap-2">
+                                    <i data-lucide="layers" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+                                    Jumlah Rangkap (Ply)
+                                </label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="rangkap" value="2" class="peer sr-only" checked onchange="calculate()">
+                                        <div class="rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 py-3 text-center text-sm font-bold text-slate-600 dark:text-slate-300 hover:border-brand-300 dark:hover:border-brand-500 peer-checked:border-brand-600 dark:peer-checked:border-brand-500 peer-checked:bg-brand-50 dark:peer-checked:bg-brand-900/40 peer-checked:text-brand-700 dark:peer-checked:text-brand-300 transition-all shadow-sm">
+                                            2 Ply
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="rangkap" value="3" class="peer sr-only" onchange="calculate()">
+                                        <div class="rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 py-3 text-center text-sm font-bold text-slate-600 dark:text-slate-300 hover:border-brand-300 dark:hover:border-brand-500 peer-checked:border-brand-600 dark:peer-checked:border-brand-500 peer-checked:bg-brand-50 dark:peer-checked:bg-brand-900/40 peer-checked:text-brand-700 dark:peer-checked:text-brand-300 transition-all shadow-sm">
+                                            3 Ply
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="rangkap" value="4" class="peer sr-only" onchange="calculate()">
+                                        <div class="rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 py-3 text-center text-sm font-bold text-slate-600 dark:text-slate-300 hover:border-brand-300 dark:hover:border-brand-500 peer-checked:border-brand-600 dark:peer-checked:border-brand-500 peer-checked:bg-brand-50 dark:peer-checked:bg-brand-900/40 peer-checked:text-brand-700 dark:peer-checked:text-brand-300 transition-all shadow-sm">
+                                            4 Ply
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ukuran -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 tracking-wider mb-4 flex items-center gap-2">
+                                <i data-lucide="maximize" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+                                Ukuran Nota
+                            </label>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="ukuran" value="F4" class="peer sr-only" checked onchange="calculate()">
+                                    <div class="rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-4 hover:border-brand-300 dark:hover:border-brand-500 peer-checked:border-brand-600 dark:peer-checked:border-brand-500 peer-checked:ring-1 peer-checked:ring-brand-600 dark:peer-checked:ring-brand-500 transition-all flex flex-col justify-center items-center text-center gap-1 shadow-sm h-full">
+                                        <span class="block font-extrabold text-lg text-slate-800 dark:text-white peer-checked:text-brand-700 dark:peer-checked:text-brand-400 transition-colors">F4</span>
+                                        <span class="block text-xs text-slate-500 dark:text-slate-400 font-medium">Full 1 Folio</span>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="ukuran" value="1/2F" class="peer sr-only" onchange="calculate()">
+                                    <div class="rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-4 hover:border-brand-300 dark:hover:border-brand-500 peer-checked:border-brand-600 dark:peer-checked:border-brand-500 peer-checked:ring-1 peer-checked:ring-brand-600 dark:peer-checked:ring-brand-500 transition-all flex flex-col justify-center items-center text-center gap-1 shadow-sm h-full">
+                                        <span class="block font-extrabold text-lg text-slate-800 dark:text-white peer-checked:text-brand-700 dark:peer-checked:text-brand-400 transition-colors">1/2 F4</span>
+                                        <span class="block text-xs text-slate-500 dark:text-slate-400 font-medium">Bagi 2</span>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="ukuran" value="1/3F" class="peer sr-only" onchange="calculate()">
+                                    <div class="rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-4 hover:border-brand-300 dark:hover:border-brand-500 peer-checked:border-brand-600 dark:peer-checked:border-brand-500 peer-checked:ring-1 peer-checked:ring-brand-600 dark:peer-checked:ring-brand-500 transition-all flex flex-col justify-center items-center text-center gap-1 shadow-sm h-full">
+                                        <span class="block font-extrabold text-lg text-slate-800 dark:text-white peer-checked:text-brand-700 dark:peer-checked:text-brand-400 transition-colors">1/3 F4</span>
+                                        <span class="block text-xs text-slate-500 dark:text-slate-400 font-medium">Bagi 3</span>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="ukuran" value="1/4F" class="peer sr-only" onchange="calculate()">
+                                    <div class="rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-4 hover:border-brand-300 dark:hover:border-brand-500 peer-checked:border-brand-600 dark:peer-checked:border-brand-500 peer-checked:ring-1 peer-checked:ring-brand-600 dark:peer-checked:ring-brand-500 transition-all flex flex-col justify-center items-center text-center gap-1 shadow-sm h-full">
+                                        <span class="block font-extrabold text-lg text-slate-800 dark:text-white peer-checked:text-brand-700 dark:peer-checked:text-brand-400 transition-colors">1/4 F4</span>
+                                        <span class="block text-xs text-slate-500 dark:text-slate-400 font-medium">Bagi 4</span>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="ukuran" value="1/6F" class="peer sr-only" onchange="calculate()">
+                                    <div class="rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-4 hover:border-brand-300 dark:hover:border-brand-500 peer-checked:border-brand-600 dark:peer-checked:border-brand-500 peer-checked:ring-1 peer-checked:ring-brand-600 dark:peer-checked:ring-brand-500 transition-all flex flex-col justify-center items-center text-center gap-1 shadow-sm h-full">
+                                        <span class="block font-extrabold text-lg text-slate-800 dark:text-white peer-checked:text-brand-700 dark:peer-checked:text-brand-400 transition-colors">1/6 F4</span>
+                                        <span class="block text-xs text-slate-500 dark:text-slate-400 font-medium">Bagi 6</span>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="ukuran" value="1/8F" class="peer sr-only" onchange="calculate()">
+                                    <div class="rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-4 hover:border-brand-300 dark:hover:border-brand-500 peer-checked:border-brand-600 dark:peer-checked:border-brand-500 peer-checked:ring-1 peer-checked:ring-brand-600 dark:peer-checked:ring-brand-500 transition-all flex flex-col justify-center items-center text-center gap-1 shadow-sm h-full">
+                                        <span class="block font-extrabold text-lg text-slate-800 dark:text-white peer-checked:text-brand-700 dark:peer-checked:text-brand-400 transition-colors">1/8 F4</span>
+                                        <span class="block text-xs text-slate-500 dark:text-slate-400 font-medium">Bagi 8</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Finishing & Kuantitas -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start bg-brand-50/50 dark:bg-brand-900/10 p-6 rounded-3xl border border-brand-100/50 dark:border-brand-800/30 transition-colors">
+                            
+                            <!-- Kuantitas -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 tracking-wider mb-4 flex items-center gap-2">
+                                    <i data-lucide="package" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+                                    Kuantitas (Rim)
+                                </label>
+                                <div class="flex items-center gap-4">
+                                    <div class="flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl shadow-sm overflow-hidden transition-colors">
+                                        <button type="button" onclick="changeRim(-1)" class="px-5 py-3 text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none transition-colors border-r border-slate-200 dark:border-slate-600">
+                                            <i data-lucide="minus" class="w-5 h-5"></i>
+                                        </button>
+                                        <input type="number" id="rim" min="1" value="1" class="w-16 text-center py-3 font-extrabold text-xl text-brand-700 dark:text-brand-400 bg-white dark:bg-slate-800 focus:outline-none transition-colors" oninput="calculate()">
+                                        <button type="button" onclick="changeRim(1)" class="px-5 py-3 text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none transition-colors border-l border-slate-200 dark:border-slate-600">
+                                            <i data-lucide="plus" class="w-5 h-5"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mt-4 bg-white dark:bg-slate-800 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 inline-flex items-center gap-2 shadow-sm transition-colors">
+                                    <i data-lucide="book-copy" class="w-4 h-4 text-slate-400 dark:text-slate-500"></i>
+                                    <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">Estimasi didapat: <span id="lblTotalBuku" class="font-extrabold text-slate-800 dark:text-white">10 Buku</span></span>
+                                </div>
+                            </div>
+
+                            <!-- Finishing -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 tracking-wider mb-4 flex items-center gap-2">
+                                    <i data-lucide="settings-2" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+                                    Finishing Tambahan
+                                </label>
+                                <div class="space-y-3">
+                                    <label class="flex items-center p-3.5 border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 rounded-xl cursor-pointer hover:border-brand-300 dark:hover:border-brand-500 transition-colors shadow-sm group">
+                                        <input type="checkbox" id="nomorator" class="checkbox-custom sr-only" onchange="calculate()">
+                                        <div class="w-6 h-6 rounded-md border-2 border-slate-300 dark:border-slate-500 mr-3 flex items-center justify-center bg-white dark:bg-slate-800 group-hover:border-brand-400 transition-all">
+                                            <i data-lucide="check" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+                                        </div>
+                                        <div class="flex-grow">
+                                            <p class="font-bold text-sm text-slate-800 dark:text-white">Nomorator</p>
+                                        </div>
+                                        <span id="lblHargaNom" class="text-xs font-bold text-slate-500 dark:text-slate-400">+Rp0</span>
+                                    </label>
+
+                                    <label class="flex items-center p-3.5 border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 rounded-xl cursor-pointer hover:border-brand-300 dark:hover:border-brand-500 transition-colors shadow-sm group">
+                                        <input type="checkbox" id="cacah" class="checkbox-custom sr-only" onchange="calculate()">
+                                        <div class="w-6 h-6 rounded-md border-2 border-slate-300 dark:border-slate-500 mr-3 flex items-center justify-center bg-white dark:bg-slate-800 group-hover:border-brand-400 transition-all">
+                                            <i data-lucide="check" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+                                        </div>
+                                        <div class="flex-grow">
+                                            <p class="font-bold text-sm text-slate-800 dark:text-white">Cacah Perforasi</p>
+                                        </div>
+                                        <span id="lblHargaCacah" class="text-xs font-bold text-slate-500 dark:text-slate-400">+Rp0</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+
+                <!-- Right Column: Summary Card -->
+                <div class="lg:col-span-5 xl:col-span-4 mt-8 lg:mt-0">
+                    <div class="bg-brand-600 rounded-[2rem] shadow-xl dark:shadow-brand-900/20 p-8 sticky top-8 text-white overflow-hidden relative border border-brand-500 dark:border-brand-700">
+                        
+                        <!-- Decorative Abstract Shapes -->
+                        <div class="absolute -top-20 -right-20 w-48 h-48 bg-white opacity-5 rounded-full blur-2xl"></div>
+                        <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-accent-400 opacity-20 rounded-full blur-xl"></div>
+
+                        <div class="relative z-10">
+                            <h2 class="text-xl font-extrabold mb-8 flex items-center justify-between text-white">
+                                Ringkasan Harga
+                                <i data-lucide="receipt" class="text-brand-300 w-6 h-6"></i>
+                            </h2>
+                            
+                            <div class="space-y-5 text-sm text-brand-100">
+                                <div class="flex justify-between items-start border-b border-brand-500/50 pb-4">
+                                    <span class="font-medium text-brand-200">Spesifikasi</span>
+                                    <div class="text-right font-bold text-white">
+                                        <div id="sumBahan" class="uppercase text-lg">NCR F4</div>
+                                        <div id="sumDetail1" class="text-xs text-brand-200 font-medium mt-1">2 Rangkap • 1 Warna</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-between items-center border-b border-brand-500/50 pb-4">
+                                    <span class="font-medium text-brand-200 flex items-center gap-2">
+                                        Harga Satuan
+                                        <span class="text-[10px] bg-brand-800/50 text-brand-200 px-2 py-0.5 rounded-full" id="sumBukuTag">10 Buku</span>
+                                    </span>
+                                    <span id="sumHargaDasar" class="font-bold text-white text-base">Rp 41.900</span>
+                                </div>
+                                
+                                <div class="flex justify-between items-center border-b border-brand-500/50 pb-4 reveal-hidden" id="rowFinishing">
+                                    <span class="font-medium text-brand-200">Finishing <span class="text-[10px] ml-1 opacity-70">/buku</span></span>
+                                    <span id="sumFinishing" class="font-bold text-white">+ Rp 0</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-8 pt-2">
+                                <p class="text-brand-200 text-sm mb-2 font-semibold">Total Estimasi Keseluruhan</p>
+                                <div class="flex items-start gap-1">
+                                    <span class="text-xl font-bold text-brand-300 mt-1">Rp</span>
+                                    <span class="text-5xl font-extrabold text-white tracking-tight tabular-nums" id="sumTotalGrand">419.000</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-10">
+                                <button onclick="window.print()" class="w-full bg-accent-400 hover:bg-accent-500 text-slate-900 py-4 px-4 rounded-2xl font-extrabold transition-all shadow-lg flex items-center justify-center gap-2 active:scale-[0.98]">
+                                    Simpan Penawaran
+                                    <i data-lucide="download" class="w-5 h-5"></i>
+                                </button>
+                                <p class="text-[11px] text-brand-300 text-center mt-4 font-medium">Harga dapat berubah sewaktu-waktu. Hubungi admin untuk harga final.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bottom Graphic Note -->
+            <div class="mt-20 flex flex-col items-center justify-center text-center">
+                <h3 class="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mb-2 transition-colors">Cetak nota custom <span class="text-brand-600 dark:text-brand-400">berkualitas</span> untuk</h3>
+                <h3 class="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white flex items-center justify-center gap-3 transition-colors">
+                    kebutuhan <span class="text-brand-600 dark:text-brand-400">bisnis Anda.</span>
+                    <i data-lucide="sparkles" class="text-accent-400 w-8 h-8 fill-accent-400"></i>
+                </h3>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-8 border-t border-slate-200 dark:border-slate-800 mt-auto bg-white dark:bg-slate-900 transition-colors">
+        <div class="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">Copyright PrintPro Production</p>
+            <div class="w-10 h-10 bg-slate-900 dark:bg-white rounded-full flex items-center justify-center transition-colors">
+                <i data-lucide="printer" class="text-white dark:text-slate-900 w-5 h-5"></i>
+            </div>
+            <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">PrintPro . 2026</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- 1. Theme Toggle Logic ---
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+
+        // Cek Local Storage atau Preferensi Sistem
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            htmlElement.classList.add('dark');
+        } else {
+            htmlElement.classList.remove('dark');
+        }
+
+        // Toggle Switch Event Listener
+        themeToggle.addEventListener('click', () => {
+            htmlElement.classList.toggle('dark');
+            // Simpan preferensi ke local storage
+            if (htmlElement.classList.contains('dark')) {
+                localStorage.theme = 'dark';
+            } else {
+                localStorage.theme = 'light';
+            }
+        });
+
+        // --- 2. Inisialisasi Icon ---
+        lucide.createIcons();
+
+        // --- 3. Logika Harga (Tetap Sama) ---
+        const bukuPerRim = {
+            ncr: { "F4": 10, "1/2F": 20, "1/3F": 30, "1/4F": 40, "1/6F": 60, "1/8F": 80 },
+            hvs: { "F4": 5, "1/2F": 10, "1/3F": 15, "1/4F": 20, "1/6F": 30, "1/8F": 40 }
+        };
+
+        const ncrHarga = {
+            "1": {
+                "F4": { "2": 41900, "3": 52200, "4": 66200 },
+                "1/2F": { "2": 21000, "3": 26100, "4": 33100 },
+                "1/3F": { "2": 14000, "3": 17400, "4": 22100 },
+                "1/4F": { "2": 10500, "3": 13100, "4": 16600 },
+                "1/6F": { "2": 7000, "3": 8700, "4": 11100 },
+                "1/8F": { "2": 5300, "3": 6600, "4": 8300 }
+            },
+            "2": {
+                "F4": { "2": 51900, "3": 62200, "4": 78700 },
+                "1/2F": { "2": 26000, "3": 31100, "4": 39400 },
+                "1/3F": { "2": 17300, "3": 20800, "4": 26300 },
+                "1/4F": { "2": 13000, "3": 15600, "4": 19700 },
+                "1/6F": { "2": 8700, "3": 10400, "4": 13200 },
+                "1/8F": { "2": 6500, "3": 7800, "4": 9900 }
+            },
+            "3": {
+                "F4": { "2": 61900, "3": 72200, "4": 91000 },
+                "1/2F": { "2": 31000, "3": 36100, "4": 45500 },
+                "1/3F": { "2": 20700, "3": 24100, "4": 30400 },
+                "1/4F": { "2": 15500, "3": 18100, "4": 22800 },
+                "1/6F": { "2": 10400, "3": 12100, "4": 15200 },
+                "1/8F": { "2": 7800, "3": 9100, "4": 11400 }
+            }
+        };
+
+        const hvsHarga = {
+            "1": {
+                "F4": { "1": 53800, "2": 37300, "3": 31900 },
+                "1/2F": { "1": 27600, "2": 19400, "3": 16700 },
+                "1/3F": { "1": 18900, "2": 13400, "3": 11600 },
+                "1/4F": { "1": 14500, "2": 10400, "3": 9100 },
+                "1/6F": { "1": 10200, "2": 7500, "3": 6500 },
+                "1/8F": { "1": 8000, "2": 6000, "3": 5300 }
+            },
+            "2": {
+                "F4": { "1": 72300, "2": 46600, "3": 38000 },
+                "1/2F": { "1": 36900, "2": 24000, "3": 19800 },
+                "1/3F": { "1": 25100, "2": 19400, "3": 13700 }, 
+                "1/4F": { "1": 19200, "2": 12800, "3": 10600 },
+                "1/6F": { "1": 13300, "2": 9000, "3": 7600 },
+                "1/8F": { "1": 10300, "2": 7100, "3": 6000 }
+            },
+            "3": {
+                "F4": { "1": 89500, "2": 54500, "3": 42800 },
+                "1/2F": { "1": 44800, "2": 27300, "3": 21400 },
+                "1/3F": { "1": 29900, "2": 18200, "3": 14300 },
+                "1/4F": { "1": 22400, "2": 13700, "3": 10700 },
+                "1/6F": { "1": 15000, "2": 9100, "3": 7200 },
+                "1/8F": { "1": 11200, "2": 6900, "3": 5400 }
+            }
+        };
+
+        const finishing = {
+            ncr: {
+                "F4": { nom: 5000, cacah: 3000 },
+                "1/2F": { nom: 3000, cacah: 2000 },
+                "1/3F": { nom: 2500, cacah: 1000 },
+                "1/4F": { nom: 2500, cacah: 1000 },
+                "1/6F": { nom: 2500, cacah: 1000 },
+                "1/8F": { nom: 2500, cacah: 1000 }
+            },
+            hvs: {
+                "F4": { nom: 6000, cacah: 4500 },
+                "1/2F": { nom: 4000, cacah: 2500 },
+                "1/3F": { nom: 3000, cacah: 1500 },
+                "1/4F": { nom: 3000, cacah: 1300 },
+                "1/6F": { nom: 3000, cacah: 1200 },
+                "1/8F": { nom: 3000, cacah: 1200 }
+            }
+        };
+
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0 }).format(angka);
+        }
+
+        function changeRim(delta) {
+            const rimInput = document.getElementById('rim');
+            let val = parseInt(rimInput.value) || 1;
+            val += delta;
+            if (val < 1) val = 1;
+            rimInput.value = val;
+            calculate();
+        }
+
+        function updateUI() {
+            const bahan = document.querySelector('input[name="bahan"]:checked').value;
+            const rangkapContainer = document.getElementById('rangkapContainer');
+            
+            if (bahan === 'hvs') {
+                rangkapContainer.classList.remove('reveal-visible');
+                rangkapContainer.classList.add('reveal-hidden');
+            } else {
+                rangkapContainer.classList.remove('reveal-hidden');
+                rangkapContainer.classList.add('reveal-visible');
+            }
+            calculate();
+        }
+
+        function calculate() {
+            const bahan = document.querySelector('input[name="bahan"]:checked').value;
+            const warna = document.querySelector('input[name="warna"]:checked').value;
+            const ukuran = document.querySelector('input[name="ukuran"]:checked').value;
+            let rimRaw = parseInt(document.getElementById('rim').value);
+            
+            if (isNaN(rimRaw) || rimRaw < 1) rimRaw = 1;
+            
+            const isNomorator = document.getElementById('nomorator').checked;
+            const isCacah = document.getElementById('cacah').checked;
+
+            const multiplierBuku = bukuPerRim[bahan][ukuran];
+            const totalBuku = rimRaw * multiplierBuku;
+            document.getElementById('lblTotalBuku').innerText = `${totalBuku} Buku`;
+            document.getElementById('sumBukuTag').innerText = `${totalBuku} Buku`;
+
+            let hargaDasarPerBuku = 0;
+            let rangkapText = "";
+
+            if (bahan === 'ncr') {
+                let rangkapEl = document.querySelector('input[name="rangkap"]:checked');
+                if(!rangkapEl) {
+                    document.querySelector('input[name="rangkap"][value="2"]').checked = true;
+                    rangkapEl = document.querySelector('input[name="rangkap"]:checked');
+                }
+                const rangkap = rangkapEl.value;
+                hargaDasarPerBuku = ncrHarga[warna][ukuran][rangkap];
+                rangkapText = `${rangkap} Ply • `;
+            } else {
+                const tierRim = Math.min(rimRaw, 3).toString(); 
+                hargaDasarPerBuku = hvsHarga[warna][ukuran][tierRim];
+            }
+
+            const hargaNomPerBuku = finishing[bahan][ukuran].nom;
+            const hargaCacahPerBuku = finishing[bahan][ukuran].cacah;
+
+            document.getElementById('lblHargaNom').innerText = `+Rp${formatRupiah(hargaNomPerBuku)}`;
+            document.getElementById('lblHargaCacah').innerText = `+Rp${formatRupiah(hargaCacahPerBuku)}`;
+
+            let totalFinishingPerBuku = 0;
+            if (isNomorator) totalFinishingPerBuku += hargaNomPerBuku;
+            if (isCacah) totalFinishingPerBuku += hargaCacahPerBuku;
+
+            const totalHargaSatuBuku = hargaDasarPerBuku + totalFinishingPerBuku;
+            const grandTotal = totalHargaSatuBuku * totalBuku;
+
+            document.getElementById('sumBahan').innerText = `${bahan.toUpperCase()} ${ukuran}`;
+            document.getElementById('sumDetail1').innerText = `${rangkapText}${warna} Warna • ${rimRaw} Rim`;
+            document.getElementById('sumHargaDasar').innerText = `Rp ${formatRupiah(hargaDasarPerBuku)}`;
+            
+            const rowFinishing = document.getElementById('rowFinishing');
+            if (totalFinishingPerBuku > 0) {
+                rowFinishing.classList.remove('reveal-hidden', 'hidden');
+                rowFinishing.classList.add('flex', 'reveal-visible');
+                document.getElementById('sumFinishing').innerText = `+ Rp ${formatRupiah(totalFinishingPerBuku)}`;
+            } else {
+                rowFinishing.classList.remove('flex', 'reveal-visible');
+                rowFinishing.classList.add('reveal-hidden');
+                setTimeout(() => {
+                    if (totalFinishingPerBuku === 0) rowFinishing.classList.add('hidden');
+                }, 400);
+            }
+            
+            const grandTotalEl = document.getElementById('sumTotalGrand');
+            grandTotalEl.style.opacity = 0.5;
+            setTimeout(() => {
+                grandTotalEl.innerText = formatRupiah(grandTotal);
+                grandTotalEl.style.opacity = 1;
+            }, 100);
+        }
+
+        window.onload = function() {
+            updateUI();
+        }
+    </script>
+</body>
+</html>
